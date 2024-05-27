@@ -1,71 +1,65 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const crypto = require('crypto');
 const simpleGit = require('simple-git');
 const { exec } = require('child_process');
 const fs = require('fs');
-// Configuration
-const PORT = process.env.PORT || 3000;
+
+// Paramètres de configuration
+const PORT = 3000;
 const SECRET = 'tonye';
 const REPO_PATH = 'C:\\Users\\tonye\\webhook';
-const BRANCH = 'main';  // Branch you want to track
+const BRANCH = 'main';
 
 if (!fs.existsSync(REPO_PATH)) {
     console.error(`Le chemin du dépôt local n'existe pas: ${REPO_PATH}`);
-  
 }
-// Initialize express app
+// Initialisation du serveur Express
 const app = express();
 app.use(bodyParser.json());
 
-// Middleware to verify GitHub webhook signature
+// Endpoint pour le webhook qui sera déclenché par GitHub lorsqu'un push est effectué
 app.post('/webhook', (req, res) => {
-    //console.log("webhook req ",req)
-    const sig = `sha256=${crypto.createHmac('sha256', SECRET).update(JSON.stringify(req.body)).digest('hex')}`;
-    if (req.headers['x-hub-signature-256'] !== sig) {
-        return res.status(401).send('Request body was not signed or verification failed');
-    }
 
-    const payload = req.body;
+    const body = req.body;
 
-    // Verify it's a push to the specific branch
-    if (payload.ref === `refs/heads/${BRANCH}`) {
-        console.log(`Changes detected in branch ${BRANCH}. Pulling latest code...`);
+    // On vérifie qu'il s'agit bien d'un push sur la branche spécifiée
+    if (body.ref === `refs/heads/${BRANCH}`) {
+        console.log(`Changement détecté sur la branche ${BRANCH}. Début du processus de mise à jour...`);
 
-        // Initialize simple-git
+        // Initialisation de simple-git pour le dépôt local
         const git = simpleGit(REPO_PATH);
 
-        // Pull the latest code and build
+        // Pull de la dernière version du code
         git.pull('origin', BRANCH, (err, update) => {
             if (err) {
-                console.error('Failed to pull latest code:', err);
+                console.error('Echec lors du pull de la branch', err);
                 return res.status(500).send('Internal Server Error');
             }
 
             if (update && update.summary.changes) {
-                console.log('Code pulled successfully. Building the project...');
+                console.log('Code mis à jour. Exécution de la commande de build...');
 
                 // Run your build command (adjust as necessary)
                 exec('npm install && npm run build', { cwd: REPO_PATH }, (buildErr, stdout, stderr) => {
                     if (buildErr) {
-                        console.error('Build failed:', buildErr);
+                        console.error('echec du build:', buildErr);
                         console.error(stderr);
                         return res.status(500).send('Internal Server Error');
                     }
-                    console.log('Build completed successfully:', stdout);
-                    res.status(200).send('Webhook received and processed');
+                    console.log('Build terminé avec succes:', stdout);
+                    res.status(200).send('webhook recu et traité avec succes');
                 });
             } else {
-                console.log('No changes detected.');
-                res.status(200).send('No changes detected');
+                console.log('Actualisation non nécessaire. Aucun changement détecté.');
+                res.status(200).send('Actualisation non nécessaire. Aucun changement détecté.');
             }
         });
     } else {
-        res.status(200).send('Not a push to the specified branch');
+        res.status(200).send('Push effectué sur une autre branche. Aucune action nécessaire.');
     }
 });
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`le serveur est lancé et écoute sur le port: ${PORT}`);
 });
