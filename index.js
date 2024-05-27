@@ -6,7 +6,7 @@ const { exec } = require('child_process');
 // Configuration
 const PORT = process.env.PORT || 3000;
 const SECRET = 'tonye';
-const REPO_PATH = 'C:\Users\tonye\webhook';
+const REPO_PATH = '/c/Users/tonye/webhook';
 const BRANCH = 'main';  // Branch you want to track
 
 // Initialize express app
