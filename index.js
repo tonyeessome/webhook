@@ -3,12 +3,17 @@ const bodyParser = require('body-parser');
 const crypto = require('crypto');
 const simpleGit = require('simple-git');
 const { exec } = require('child_process');
+const fs = require('fs');
 // Configuration
 const PORT = process.env.PORT || 3000;
 const SECRET = 'tonye';
-const REPO_PATH = '/c/Users/tonye/webhook';
+const REPO_PATH = 'C:\\Users\\tonye\\webhook';
 const BRANCH = 'main';  // Branch you want to track
 
+if (!fs.existsSync(REPO_PATH)) {
+    console.error(`Le chemin du dépôt local n'existe pas: ${REPO_PATH}`);
+  
+}
 // Initialize express app
 const app = express();
 app.use(bodyParser.json());
