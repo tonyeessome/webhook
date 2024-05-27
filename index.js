@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const crypto = require('crypto');
 const simpleGit = require('simple-git');
 const { exec } = require('child_process');
-
 // Configuration
 const PORT = process.env.PORT || 3000;
 const SECRET = 'tonye';
