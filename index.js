@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 
 // Middleware to verify GitHub webhook signature
 app.post('/webhook', (req, res) => {
-    console.log("webhook req ",req)
+    //console.log("webhook req ",req)
     const sig = `sha256=${crypto.createHmac('sha256', SECRET).update(JSON.stringify(req.body)).digest('hex')}`;
     if (req.headers['x-hub-signature-256'] !== sig) {
         return res.status(401).send('Request body was not signed or verification failed');
